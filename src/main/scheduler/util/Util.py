@@ -57,6 +57,13 @@ def assert_password_error():
 
 
 def format_date(year, month, day):
+    """
+    Takes a year, month, and day and returns a datetime formatted object
+    @param year: YYYY
+    @param month: MM
+    @param day: DD
+    @return: datetime object YYYY-MM-DD
+    """
     date_str = f"{year}-{month}-{day}"
     return datetime.strptime(date_str, "%Y-%m-%d").date()
 

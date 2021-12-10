@@ -9,11 +9,12 @@
 from model.Vaccine import Vaccine
 from model.Caregiver import Caregiver
 from model.Patient import Patient
-from util.Util import generate_salt, generate_hash, check_password, assert_password_error, format_date
-from util.Error import *
+from util.Util import generate_salt, generate_hash, check_password, \
+    assert_password_error, format_date
+from util.Error import DatabaseSaveError, DatabaseRetrievalError, DatabaseUpdateError
 from db.ConnectionManager import ConnectionManager
-import pymssql
 from tabulate import tabulate
+import pymssql
 import random
 
 # Global Objects to track current logged in patient and caregiver
@@ -66,8 +67,8 @@ def create_patient(tokens):
             return None
         print(" *** Account created successfully *** ")
     except pymssql.Error as db_err:
-        sqlrc = str(db_err.args[0])
-        print("Exception code: " + str(sqlrc))
+        sql_rc = str(db_err.args[0])
+        print("Exception code: " + str(sql_rc))
         print("Create failed")
         return None
 
@@ -115,8 +116,8 @@ def create_caregiver(tokens):
             return None
         print(" *** Account created successfully *** ")
     except pymssql.Error as db_err:
-        sqlrc = str(db_err.args[0])
-        print("Exception code: " + str(sqlrc))
+        sql_rc = str(db_err.args[0])
+        print("Exception code: " + str(sql_rc))
         print("Create failed")
         return None
 
@@ -141,8 +142,8 @@ def username_exists(username, user_type):
         for row in cursor:
             return row['Username'] is not None
     except pymssql.Error as db_err:
-        sqlrc = str(db_err.args[0])
-        print("Exception code: " + str(sqlrc))
+        sql_rc = str(db_err.args[0])
+        print("Exception code: " + str(sql_rc))
         print("Error occurred when checking username")
     finally:
         cm.close_connection()
@@ -185,8 +186,8 @@ def login_patient(tokens):
             print("Error occurred when retrieving patient data. Please try again")
             return None
     except pymssql.Error as db_err:
-        sqlrc = str(db_err.args[0])
-        print("Exception code: " + str(sqlrc))
+        sql_rc = str(db_err.args[0])
+        print("Exception code: " + str(sql_rc))
         print("Error occurred when logging in. Please try again.")
 
     if patient is None:
@@ -236,8 +237,8 @@ def login_caregiver(tokens):
             print("Get Failed")
             return
     except pymssql.Error as db_err:
-        sqlrc = str(db_err.args[0])
-        print("Exception code: " + str(sqlrc))
+        sql_rc = str(db_err.args[0])
+        print("Exception code: " + str(sql_rc))
         print("Error occurred when logging in")
 
     # check if the login was successful
@@ -293,8 +294,8 @@ def search_caregiver_schedule(tokens):
             print(f'{tabulate(caregivers, headers=["Caregiver"])}\n')
 
     except pymssql.Error as db_err:
-        sqlrc = str(db_err.args[0])
-        print("Exception code: " + str(sqlrc))
+        sql_rc = str(db_err.args[0])
+        print("Exception code: " + str(sql_rc))
         print("Error occurred when retrieving caregiver schedule")
         return None
 
@@ -314,8 +315,8 @@ def search_caregiver_schedule(tokens):
             print(f'{tabulate(vaccines, headers=["Vaccine Name", "Doses Remaining"])}\n')
 
         except pymssql.Error as db_err:
-            sqlrc = str(db_err.args[0])
-            print("Exception code: " + str(sqlrc))
+            sql_rc = str(db_err.args[0])
+            print("Exception code: " + str(sql_rc))
             print("Error occurred when retrieving vaccine numbers")
     cm.close_connection()
 
@@ -362,8 +363,8 @@ def reserve(tokens):
         for row in cursor:
             caregivers.append(row["Username"])
     except pymssql.Error as db_err:
-        sqlrc = str(db_err.args[0])
-        print("Exception code: " + str(sqlrc))
+        sql_rc = str(db_err.args[0])
+        print("Exception code: " + str(sql_rc))
         print("Error occurred when retrieving caregiver schedule")
         return None
 
@@ -387,8 +388,8 @@ def reserve(tokens):
         for row in cursor:
             doses_available = row["Doses"]
     except pymssql.Error as db_err:
-        sqlrc = str(db_err.args[0])
-        print("Exception code: " + str(sqlrc))
+        sql_rc = str(db_err.args[0])
+        print("Exception code: " + str(sql_rc))
         print("Error occurred when retrieving vaccine availability")
         return None
 
@@ -416,8 +417,8 @@ def reserve(tokens):
             appointment_id = num_appointments + 1
         print(num_appointments)
     except pymssql.Error as db_err:
-        sqlrc = str(db_err.args[0])
-        print("Exception code: " + str(sqlrc))
+        sql_rc = str(db_err.args[0])
+        print("Exception code: " + str(sql_rc))
         print("Error occurred when creating details for appointment.")
         return None
 
@@ -440,8 +441,8 @@ def reserve(tokens):
         print("\n")
 
     except pymssql.Error as db_err:
-        sqlrc = str(db_err.args[0])
-        print("Exception code: " + str(sqlrc))
+        sql_rc = str(db_err.args[0])
+        print("Exception code: " + str(sql_rc))
         print("Error occurred when booking appointment. Please make sure that you are selecting"
               " a date (YYYY-MM-DD) for which a caregiver is available and a vaccine that has"
               " doses available.")
@@ -459,8 +460,8 @@ def reserve(tokens):
             print("Unable to update caregiver availability. Please try again.")
             return None
     except pymssql.Error as db_err:
-        sqlrc = str(db_err.args[0])
-        print("Exception code: " + str(sqlrc))
+        sql_rc = str(db_err.args[0])
+        print("Exception code: " + str(sql_rc))
         print("Error occurred when updating caregiver availability")
         return None
 
@@ -474,8 +475,8 @@ def reserve(tokens):
             print("Unable to update vaccine dosage availability. Please try again.")
             return None
     except pymssql.Error as db_err:
-        sqlrc = str(db_err.args[0])
-        print("Exception code: " + str(sqlrc))
+        sql_rc = str(db_err.args[0])
+        print("Exception code: " + str(sql_rc))
         print("Error occurred when updating vaccine dose amounts.")
         return None
 
@@ -515,9 +516,6 @@ def upload_availability(tokens):
     date = tokens[1]
     # assume input is hyphenated in the format YYYY-MM-DD
     date_tokens = date.split("-")
-    # month = int(date_tokens[0])
-    # day = int(date_tokens[1])
-    # year = int(date_tokens[2])
     month = int(date_tokens[1])
     day = int(date_tokens[2])
     year = int(date_tokens[0])
@@ -532,8 +530,8 @@ def upload_availability(tokens):
     except ValueError:
         print("Please enter a valid date!")
     except pymssql.Error as db_err:
-        sqlrc = str(db_err.args[0])
-        print("Exception code: " + str(sqlrc))
+        sql_rc = str(db_err.args[0])
+        print("Exception code: " + str(sql_rc))
         print("Error occurred when uploading availability")
 
 
@@ -629,8 +627,8 @@ def cancel(tokens):
 
         print("Successfully canceled your appointment. Please come again!")
     except pymssql.Error as db_err:
-        sqlrc = str(db_err.args[0])
-        print("Exception code: " + str(sqlrc))
+        sql_rc = str(db_err.args[0])
+        print("Exception code: " + str(sql_rc))
         print("Error occurred when canceling appointment.")
         return None
     finally:
@@ -745,8 +743,8 @@ def show_appointments(tokens):
                        headers=["Appointment ID", "Vaccine", "Date", f"{opposite_user}"]))
 
     except pymssql.Error as db_err:
-        sqlrc = str(db_err.args[0])
-        print("Exception code: " + str(sqlrc))
+        sql_rc = str(db_err.args[0])
+        print("Exception code: " + str(sql_rc))
         print("Error occurred when retrieving appointments")
         return None
     finally:

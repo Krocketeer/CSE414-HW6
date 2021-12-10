@@ -59,7 +59,7 @@ class Patient(User):
             conn.commit()
         except pymssql.Error as db_err:
             print("Error occurred when inserting Patient")
-            sqlrc = str(db_err.args[0])
-            print("Exception code: " + str(sqlrc))
+            sql_rc = str(db_err.args[0])
+            print("Exception code: " + str(sql_rc))
         finally:
             cm.close_connection()

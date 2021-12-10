@@ -59,8 +59,8 @@ class Caregiver(User):
             conn.commit()
         except pymssql.Error as db_err:
             print("Error occurred when inserting Caregivers")
-            sqlrc = str(db_err.args[0])
-            print("Exception code: " + str(sqlrc))
+            sql_rc = str(db_err.args[0])
+            print("Exception code: " + str(sql_rc))
         finally:
             cm.close_connection()
 
@@ -82,7 +82,7 @@ class Caregiver(User):
             conn.commit()
         except pymssql.Error as db_err:
             print("Error occurred when updating caregiver availability")
-            sqlrc = str(db_err.args[0])
-            print("Exception code: " + str(sqlrc))
+            sql_rc = str(db_err.args[0])
+            print("Exception code: " + str(sql_rc))
         finally:
             cm.close_connection()
